@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>☕ Tea Check-in Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #f5f0eb;
+      --surface: #ffffff;
+      --border:  #e0d8cf;
+      --text:    #2d2320;
+      --muted:   #7a6e68;
+      --accent:  #7b4fa6;
+      --accent2: #3d9970;
+      --streak:  #e67e22;
+      --radius:  10px;
+      --shadow:  0 2px 8px rgba(0,0,0,.08);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: .75rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+    }
+    header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -.5px; }
+
+    #status-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: .5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-size: .82rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+    #status-bar strong { color: var(--text); }
+
+    #controls {
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    #controls label { font-weight: 600; font-size: .9rem; }
+    select {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .4rem .75rem;
+      font-size: .9rem;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+    }
+    select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+    .sort-group { display: flex; align-items: center; gap: .5rem; margin-left: auto; }
+    .sort-group label { font-size: .85rem; color: var(--muted); }
+    .sort-btn {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .35rem .7rem;
+      font-size: .8rem;
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .sort-btn:hover  { border-color: var(--accent); color: var(--accent); }
+    .sort-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    #summary {
+      padding: 0 2rem 1.25rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .9rem 1.4rem;
+      min-width: 140px;
+      box-shadow: var(--shadow);
+    }
+    .stat-card .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--accent); line-height: 1.1; }
+
+    #main { padding: 0 2rem 3rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      font-size: .88rem;
+    }
+    th {
+      background: #f0eae4;
+      text-align: left;
+      padding: .7rem 1rem;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    th:first-child, td:first-child { text-align: center; width: 3rem; }
+
+    tr.user-row {
+      cursor: pointer;
+      transition: background .1s;
+      border-bottom: 1px solid var(--border);
+    }
+    tr.user-row:hover    { background: #faf5f0; }
+    tr.user-row.expanded { background: #f4ecf7; }
+
+    td { padding: .75rem 1rem; vertical-align: middle; }
+
+    .username { font-weight: 600; }
+    .chevron {
+      display: inline-block;
+      transition: transform .2s;
+      color: var(--accent);
+      font-size: .85rem;
+      margin-left: .4rem;
+    }
+    tr.expanded .chevron { transform: rotate(90deg); }
+
+    .streak-badge {
+      display: inline-block;
+      background: #fef3e2;
+      color: var(--streak);
+      border: 1px solid #f5cba7;
+      border-radius: 12px;
+      padding: .15rem .55rem;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .max-badge {
+      display: inline-block;
+      background: #eaf6f2;
+      color: var(--accent2);
+      border: 1px solid #a9dfbf;
+      border-radius: 12px;
+      padding: .15rem .55rem;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+
+    tr.history-row td { padding: 0; }
+    tr.history-row td > div {
+      padding: 1rem 1.5rem 1.25rem 3rem;
+      background: #f9f4fb;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-title {
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      margin-bottom: .6rem;
+    }
+    .stream-grid { display: flex; flex-wrap: wrap; gap: .35rem; max-width: 700px; }
+    .stream-cell { display: flex; flex-direction: column; align-items: center; width: 56px; }
+    .stream-cell .day-label { font-size: .65rem; color: var(--muted); margin-bottom: .15rem; white-space: nowrap; }
+    .stream-dot {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .7rem;
+      font-weight: 700;
+      border: 2px solid transparent;
+    }
+    .stream-dot.checked { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .stream-dot.missed  { background: #f0e8f5; color: var(--muted); border-color: var(--border); }
+
+    .history-list { display: flex; flex-wrap: wrap; gap: .35rem; }
+    .history-pill {
+      background: var(--accent); color: #fff;
+      border-radius: 12px; padding: .2rem .65rem;
+      font-size: .78rem; font-weight: 600;
+    }
+
+    #no-data { text-align: center; padding: 4rem; color: var(--muted); font-size: 1rem; }
+
+    @media (max-width: 640px) {
+      header, #controls, #summary, #main { padding-left: 1rem; padding-right: 1rem; }
+      .sort-group { margin-left: 0; }
+      .hide-mobile { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>☕ Tea Check-in Dashboard</h1>
+</header>
+
+<div id="status-bar">
+  <span>📸 Snapshot published at <strong>2026-03-03 12:20:22 CT</strong></span>
+  <span>Updates automatically when someone checks in</span>
+</div>
+
+<div id="controls">
+  <label for="month-select">Month:</label>
+  <select id="month-select"></select>
+
+  <div class="sort-group">
+    <label>Sort:</label>
+    <button class="sort-btn active" data-sort="total">Total</button>
+    <button class="sort-btn" data-sort="streak">Streak</button>
+    <button class="sort-btn" data-sort="max">Max&nbsp;Streak</button>
+    <button class="sort-btn" data-sort="name">Name</button>
+  </div>
+</div>
+
+<div id="summary">
+  <div class="stat-card"><div class="label">Participants</div><div class="value" id="stat-users">—</div></div>
+  <div class="stat-card"><div class="label">Stream Days</div><div class="value" id="stat-stream-days">—</div></div>
+  <div class="stat-card"><div class="label">Total Check-ins</div><div class="value" id="stat-checkins">—</div></div>
+  <div class="stat-card"><div class="label">Top Streak</div><div class="value" id="stat-top-streak">—</div></div>
+</div>
+
+<div id="main">
+  <div id="no-data" style="display:none;">No check-in data found.</div>
+  <table id="data-table" style="display:none;" aria-label="Check-in leaderboard">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>User</th>
+        <th>Total</th>
+        <th>Streak</th>
+        <th class="hide-mobile">Max Streak</th>
+        <th class="hide-mobile">Last Check-in</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</div>
+
+<script>
+  /* ── Baked-in snapshot ── */
+  const SNAPSHOT = {"months":["2026-02"],"data":{"2026-02":{"hoorayxiv":{"total":17,"current_streak":17,"max_streak":17,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"Searth":{"total":16,"current_streak":16,"max_streak":16,"last_checkin":"2026-02-24","checkin_history":["2026-02-24"]},"TheMageOz":{"total":20,"current_streak":20,"max_streak":20,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"DahliaPaige":{"total":19,"current_streak":19,"max_streak":19,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"Sssnuggles_":{"total":3,"current_streak":3,"max_streak":3,"last_checkin":"2026-02-19","checkin_history":["2026-02-19"]},"WillowBirdsong":{"total":16,"current_streak":16,"max_streak":16,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"TheAquaEuphie":{"total":20,"current_streak":20,"max_streak":20,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"NitusDC":{"total":14,"current_streak":1,"max_streak":13,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"Rhea_Stellar":{"total":14,"current_streak":1,"max_streak":13,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"Mirophi":{"total":6,"current_streak":6,"max_streak":6,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"zeal0uswolf":{"total":1,"current_streak":1,"max_streak":1,"last_checkin":"2026-02-19","checkin_history":["2026-02-19"]},"yourmomxdbruh":{"total":5,"current_streak":1,"max_streak":4,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"fnaf_max68":{"total":6,"current_streak":6,"max_streak":6,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"kyt_raven109":{"total":1,"current_streak":1,"max_streak":1,"last_checkin":"2026-02-20","checkin_history":["2026-02-20"]},"ridangy":{"total":8,"current_streak":1,"max_streak":8,"last_checkin":"2026-02-21","checkin_history":["2026-02-21"]},"x7dashie":{"total":7,"current_streak":1,"max_streak":7,"last_checkin":"2026-02-22","checkin_history":["2026-02-22"]},"tempest_choy":{"total":1,"current_streak":1,"max_streak":1,"last_checkin":"2026-02-22","checkin_history":["2026-02-22"]},"jeff5197":{"total":2,"current_streak":1,"max_streak":1,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"Krydere":{"total":1,"current_streak":1,"max_streak":1,"last_checkin":"2026-02-22","checkin_history":["2026-02-22"]},"NoxTheJester":{"total":1,"current_streak":1,"max_streak":1,"last_checkin":"2026-02-22","checkin_history":["2026-02-22"]},"Nox_XIV":{"total":1,"current_streak":1,"max_streak":1,"last_checkin":"2026-02-23","checkin_history":["2026-02-23"]},"Dr_Dogo":{"total":2,"current_streak":2,"max_streak":2,"last_checkin":"2026-02-24","checkin_history":["2026-02-24"]},"Lacrimosaangel":{"total":3,"current_streak":1,"max_streak":2,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"Xanzi":{"total":8,"current_streak":8,"max_streak":8,"last_checkin":"2026-02-23","checkin_history":["2026-02-23"]},"Gywnvere":{"total":1,"current_streak":1,"max_streak":1,"last_checkin":"2026-02-23","checkin_history":["2026-02-23"]},"DnSGaming__":{"total":2,"current_streak":1,"max_streak":1,"last_checkin":"2026-02-24","checkin_history":["2026-02-24"]},"stream_days":["2026-02-24","2026-02-26"],"SachiKino":{"total":2,"current_streak":2,"max_streak":2,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]},"FaeNFriends":{"total":1,"current_streak":1,"max_streak":1,"last_checkin":"2026-02-26","checkin_history":["2026-02-26"]}}}};
+
+  let allData  = SNAPSHOT.data;
+  let months   = SNAPSHOT.months;
+  let sortKey  = 'total';
+  let expanded = new Set();
+
+  /* ── DOM refs ── */
+  const monthSelect = document.getElementById('month-select');
+  const tableBody   = document.getElementById('table-body');
+  const dataTable   = document.getElementById('data-table');
+  const noData      = document.getElementById('no-data');
+  const sortBtns    = document.querySelectorAll('.sort-btn');
+
+  /* ── Utilities ── */
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const [y, m, d] = iso.split('-');
+    return new Date(+y, +m - 1, +d).toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+  }
+  function dayLabel(iso) {
+    const [y, m, d] = iso.split('-');
+    return new Date(+y, +m - 1, +d).toLocaleDateString(undefined, { month:'short', day:'numeric' });
+  }
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function currentMonth() { return monthSelect.value; }
+
+  /* ── Populate month dropdown ── */
+  function populateMonthSelect() {
+    const prev = monthSelect.value;
+    monthSelect.innerHTML = '';
+    months.forEach(m => {
+      const [y, mo] = m.split('-');
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = new Date(+y, +mo - 1, 1).toLocaleDateString(undefined, { month:'long', year:'numeric' });
+      monthSelect.appendChild(opt);
+    });
+    if (months.includes(prev)) monthSelect.value = prev;
+  }
+
+  /* ── Data helpers ── */
+  function getMonthUsers(monthKey) {
+    const md = allData[monthKey] || {};
+    return Object.entries(md)
+      .filter(([k, v]) => k !== 'stream_days' && typeof v === 'object')
+      .map(([name, data]) => ({ name, ...data }));
+  }
+
+  function sortUsers(users) {
+    return [...users].sort((a, b) => {
+      if (sortKey === 'total')  return b.total - a.total;
+      if (sortKey === 'streak') return b.current_streak - a.current_streak;
+      if (sortKey === 'max')    return b.max_streak - a.max_streak;
+      if (sortKey === 'name')   return a.name.localeCompare(b.name);
+      return 0;
+    });
+  }
+
+  /* ── Summary cards ── */
+  function renderSummary(monthKey, users) {
+    const md         = allData[monthKey] || {};
+    const streamDays = md.stream_days || [];
+    document.getElementById('stat-users').textContent      = users.length;
+    document.getElementById('stat-stream-days').textContent = streamDays.length;
+    document.getElementById('stat-checkins').textContent   = users.reduce((s, u) => s + (u.total || 0), 0);
+    document.getElementById('stat-top-streak').textContent = users.reduce((m, u) => Math.max(m, u.current_streak || 0), 0);
+  }
+
+  /* ── History row ── */
+  function buildHistoryRow(user, monthKey) {
+    const md         = allData[monthKey] || {};
+    const streamDays = md.stream_days || [];
+    const checkedSet = new Set(user.checkin_history || []);
+
+    const tr = document.createElement('tr');
+    tr.className    = 'history-row';
+    tr.dataset.user = user.name;
+
+    const td  = document.createElement('td');
+    td.colSpan = 6;
+    const div = document.createElement('div');
+
+    if (streamDays.length > 0) {
+      const title = document.createElement('div');
+      title.className   = 'history-title';
+      title.textContent = `Check-in History (${checkedSet.size} of ${streamDays.length} stream days)`;
+      div.appendChild(title);
+
+      const grid = document.createElement('div');
+      grid.className = 'stream-grid';
+
+      streamDays.forEach(day => {
+        const cell = document.createElement('div');
+        cell.className = 'stream-cell';
+
+        const lbl = document.createElement('div');
+        lbl.className   = 'day-label';
+        lbl.textContent = dayLabel(day);
+        cell.appendChild(lbl);
+
+        const wasChecked = checkedSet.has(day);
+        const dot = document.createElement('div');
+        dot.className   = 'stream-dot ' + (wasChecked ? 'checked' : 'missed');
+        dot.title       = wasChecked ? `✔ Checked in on ${day}` : `✘ Missed ${day}`;
+        dot.textContent = wasChecked ? '✔' : '✘';
+        cell.appendChild(dot);
+
+        grid.appendChild(cell);
+      });
+      div.appendChild(grid);
+
+    } else {
+      const title = document.createElement('div');
+      title.className   = 'history-title';
+      title.textContent = `Check-in History (${checkedSet.size} days)`;
+      div.appendChild(title);
+
+      const list = document.createElement('div');
+      list.className = 'history-list';
+      [...checkedSet].sort().forEach(day => {
+        const pill = document.createElement('span');
+        pill.className   = 'history-pill';
+        pill.textContent = fmtDate(day);
+        list.appendChild(pill);
+      });
+      div.appendChild(list);
+    }
+
+    td.appendChild(div);
+    tr.appendChild(td);
+    return tr;
+  }
+
+  /* ── Render table ── */
+  function renderTable(monthKey) {
+    const users  = getMonthUsers(monthKey);
+    const sorted = sortUsers(users);
+
+    renderSummary(monthKey, users);
+
+    if (sorted.length === 0) {
+      dataTable.style.display = 'none';
+      noData.style.display    = 'block';
+      return;
+    }
+    dataTable.style.display = '';
+    noData.style.display    = 'none';
+
+    const scrollY = window.scrollY;
+    tableBody.innerHTML = '';
+
+    sorted.forEach((user, i) => {
+      const tr = document.createElement('tr');
+      tr.className    = 'user-row' + (expanded.has(user.name) ? ' expanded' : '');
+      tr.dataset.user = user.name;
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td class="username">${escHtml(user.name)} <span class="chevron">▶</span></td>
+        <td>${user.total ?? 0}</td>
+        <td><span class="streak-badge">🔥 ${user.current_streak ?? 0}</span></td>
+        <td class="hide-mobile"><span class="max-badge">⭐ ${user.max_streak ?? 0}</span></td>
+        <td class="hide-mobile">${fmtDate(user.last_checkin)}</td>
+      `;
+      tr.addEventListener('click', () => {
+        expanded.has(user.name) ? expanded.delete(user.name) : expanded.add(user.name);
+        renderTable(monthKey);
+      });
+      tableBody.appendChild(tr);
+
+      if (expanded.has(user.name)) {
+        tableBody.appendChild(buildHistoryRow(user, monthKey));
+      }
+    });
+
+    window.scrollTo(0, scrollY);
+  }
+
+  /* ── Sort buttons ── */
+  sortBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      sortBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sortKey = btn.dataset.sort;
+      renderTable(currentMonth());
+    });
+  });
+
+  /* ── Month select ── */
+  monthSelect.addEventListener('change', () => {
+    expanded.clear();
+    renderTable(currentMonth());
+  });
+
+  /* ── Init ── */
+  (function init() {
+    populateMonthSelect();
+    const curKey = new Date().toISOString().slice(0, 7);
+    if (months.includes(curKey)) monthSelect.value = curKey;
+    renderTable(currentMonth());
+  })();
+</script>
+</body>
+</html>
