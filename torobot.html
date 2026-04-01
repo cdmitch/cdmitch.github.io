@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TotoroBot Leaderboard</title>
+  <style>
+    :root {
+      --green: #3a7d44;
+      --dark: #1a3a2a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f7f0;
+      color: var(--dark);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 700px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 2rem; }
+    h1 { font-size: 2rem; color: var(--dark); }
+    .subtitle { color: var(--green); margin-top: 0.4rem; font-size: 0.9rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(58, 125, 68, 0.15);
+    }
+    thead { background: var(--green); color: white; }
+    th {
+      padding: 0.85rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid #e8f5eb; }
+    tr:last-child td { border-bottom: none; }
+    tr.gold   td { background: #fffde7; }
+    tr.silver td { background: #f5f5f5; }
+    tr.bronze td { background: #fdf4ec; }
+    tbody tr:hover td { background: #e8f5eb; transition: background 0.15s; }
+    .points { font-weight: 600; color: var(--green); }
+    .streak  { color: #e25e1c; }
+    .empty { padding: 1.5rem; text-align: center; color: #6b8f72; font-style: italic; }
+    footer { text-align: center; margin-top: 1.5rem; color: #6b8f72; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>&#x1F333; Totoro Finder Leaderboard</h1>
+      <p class="subtitle">Last updated: 2026-04-01 05:42 UTC</p>
+    </header>
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Hunter</th>
+          <th>Points</th>
+          <th>Streak</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="gold"><td>&#x1F947;</td><td>Dahlia</td><td class="points">320</td><td><span class="streak">&#x1F525; 16</span></td></tr>
+        <tr class="silver"><td>&#x1F948;</td><td>Hooray</td><td class="points">320</td><td><span class="streak">&#x1F525; 16</span></td></tr>
+        <tr class="bronze"><td>&#x1F949;</td><td>𝚆𝚒𝚕𝚕𝚘𝚠 𝙱𝚒𝚛𝚍𝚜𝚘𝚗𝚐</td><td class="points">320</td><td><span class="streak">&#x1F525; 16</span></td></tr>
+        <tr class=""><td>4</td><td>Drea</td><td class="points">300</td><td><span class="streak">&#x1F525; 4</span></td></tr>
+        <tr class=""><td>5</td><td>Nitus</td><td class="points">300</td><td><span class="streak">&#x1F525; 9</span></td></tr>
+        <tr class=""><td>6</td><td>EuphieAqua</td><td class="points">300</td><td><span class="streak">&#x1F525; 14</span></td></tr>
+        <tr class=""><td>7</td><td>Marko</td><td class="points">140</td><td><span class="streak">&#x1F525; 7</span></td></tr>
+        <tr class=""><td>8</td><td>MelissaFletcher1313</td><td class="points">100</td><td><span class="streak">&#x1F525; 5</span></td></tr>
+        <tr class=""><td>9</td><td>Leash_Bobs</td><td class="points">60</td><td><span class="streak">&#x1F525; 2</span></td></tr>
+        <tr class=""><td>10</td><td>YOURMOM</td><td class="points">20</td><td>&mdash;</td></tr>
+      </tbody>
+    </table>
+    <footer>Powered by TotoroBot &#x1F33F;</footer>
+  </div>
+</body>
+</html>
